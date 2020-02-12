@@ -1,0 +1,49 @@
+name: CI/CD
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Event Name
+      run: |
+        echo "::set-env name=EVENT_NAME::$GITHUB_EVENT_NAME"
+    - name: Calculate Build info
+      run: |
+        $versionInfo = ./ci/calculate-buildInfo.ps1 $false ./version.json $env:EVENT_NAME
+        echo "::set-env name=VERSION::$($versionInfo.ProductVersion)"
+        echo "::set-env name=BRANCH::$($versionInfo.Branch)"
+        echo "::set-env name=IS_RELEASE_VERSION::$($versionInfo.IsReleaseVersion)" 
+      shell: pwsh
+    - name: Display branch and version
+      run: 
+        echo version=$VERSION branch=$BRANCH releasedProduct=$IS_RELEASE_VERSION event=$EVENT_NAME
+    - name: Login to Docker Artifactory.
+      shell: pwsh 
+      run: >
+          ./ci/login.ps1 
+          -username:${{secrets.artifactory_username}} 
+          -apikey:${{secrets.artifactory_apikey}} 
+    - name: Create Docker Image
+      shell: pwsh 
+      run: >
+          ./ci/build.ps1 
+          -version:$env:VERSION
+          -branch:$env:BRANCH
+          -isReleaseVersion:$([System.Convert]::ToBoolean($env:IS_RELEASE_VERSION))
+    - name: Push Docker Image to Artifactory
+      shell: pwsh 
+      run: >
+          ./ci/publish.ps1 
+          -version:$env:VERSION
+          -branch:$env:BRANCH
+          -isReleaseVersion:$([System.Convert]::ToBoolean($env:IS_RELEASE_VERSION))
+    - name: Setup JFrog CLI
+      uses: jfrog/setup-jfrog-cli@v1.0.3
+      with:
+        # JFrog CLI Version
+        version: 1.33.1
