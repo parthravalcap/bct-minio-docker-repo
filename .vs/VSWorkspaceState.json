@@ -1,0 +1,10 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\.github",
+    "\\ci",
+    "\\src",
+    "\\src\\collector"
+  ],
+  "PreviewInSolutionExplorer": false
+}
