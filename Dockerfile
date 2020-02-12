@@ -8,7 +8,7 @@ ENV GO111MODULE on
 
 RUN  \
      apk add --no-cache git && \
-     git clone https://github.com/minio/minio && cd minio && \
+     git clone https://github.com/parthravalcap/bct-minio-docker-repo && cd bct-minio-docker-repo && \
      go install -v -ldflags "$(go run buildscripts/gen-ldflags.go)"
 
 FROM alpine:3.10
